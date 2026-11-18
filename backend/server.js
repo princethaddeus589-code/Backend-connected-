@@ -37,16 +37,21 @@ app.get("/", (req, res) => {
 });
 
 // SIGN UP
+
 app.post("/api/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ message: "Name, email and password are required" });
+      return res.status(400).json({
+        message: "Name, email and password are required"
+      });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters" });
+      return res.status(400).json({
+        message: "Password must be at least 6 characters"
+      });
     }
 
     const user = await auth.createUser({
@@ -55,18 +60,26 @@ app.post("/api/signup", async (req, res) => {
       password,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Account created successfully",
       uid: user.uid,
       name: user.displayName,
       email: user.email,
     });
+
   } catch (error) {
+    console.error("SIGNUP ERROR CODE:", error.code);
+    console.error("SIGNUP ERROR MESSAGE:", error.message);
+
     if (error.code === "auth/email-already-exists") {
-      return res.status(400).json({ message: "This email is already registered" });
+      return res.status(400).json({
+        message: "This email is already registered"
+      });
     }
-    console.error(error);
-    res.status(400).json({ message: "Unable to create account" });
+
+    return res.status(400).json({
+      message: "Signup failed: " + (error.code || "unknown error")
+    });
   }
 });
 
