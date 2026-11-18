@@ -1,8 +1,9 @@
-
-const API_BASE =
+const API_BASE = (
   import.meta.env.VITE_API_URL ||
-  "https://backend-connected-hyw6.vercel.app";
+  "https://backend-connected-hyw6.vercel.app"
+).replace(/\/+$/, "");
 
+console.log("API_BASE:", API_BASE);
 export async function apiSignup({ name, email, password }) {
   try {
     const res = await fetch(`${API_BASE}/api/signup`, {
