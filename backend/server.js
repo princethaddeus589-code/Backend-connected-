@@ -123,8 +123,6 @@ app.post("/api/signin", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-
 export default app;
 
 if (process.env.NODE_ENV !== "production") {
