@@ -1,26 +1,16 @@
 {
-  "name": "auth-api",
+  "name": "portfolia-auth-backend",
   "version": "1.0.0",
-  "description": "Firebase Authentication API",
-  "main": "server.js",
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "node --watch server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "cors": "^2.8.6",
-    "dotenv": "^18.0.9",
-    "express": "^5.3.0",
-    "firebase": "^13.1.0",
-    "firebase-admin": "^14.5.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "firebase-admin": "^12.6.0"
   }
 }
 
