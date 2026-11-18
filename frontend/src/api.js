@@ -4,19 +4,28 @@ const API_BASE =
   "https://backend-connected-hyw6.vercel.app";
 
 export async function apiSignup({ name, email, password }) {
-  const res = await fetch(`${API_BASE}/api/signup`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password }),
-  });
+  try {
+    const res = await fetch(`${API_BASE}/api/signup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, email, password }),
+    });
 
-  const data = await res.json().catch(() => ({}));
+    const data = await res.json().catch(() => ({}));
 
-  if (!res.ok) {
-    throw new Error(data.message || "Unable to create account");
+    console.log("Signup response:", res.status, data);
+
+    if (!res.ok) {
+      throw new Error(data.message || "Unable to create account");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Signup connection error:", error);
+    throw error;
   }
-
-  return data;
 }
 
 export async function apiSignin({ email, password }) {
