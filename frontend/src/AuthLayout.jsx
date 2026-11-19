@@ -1,7 +1,7 @@
 import Logo from "./Logo";
 
 export const fieldClass =
-  "w-full rounded-lg border border-line bg-white px-3.5 py-3 text-sm text-ink outline-none transition placeholder:text-muted/70 focus:border-cobalt focus:ring-4 focus:ring-cobalt/15";
+  "w-full rounded-lg border border-line bg-white px-3.5 py-3 text-base text-ink outline-none transition placeholder:text-muted/70 focus:border-cobalt focus:ring-4 focus:ring-cobalt/15 sm:text-sm";
 
 const points = [
   "Start from a template made for your field",
