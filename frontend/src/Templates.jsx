@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -86,13 +85,13 @@ function TemplatePreview({ template, large = false }) {
         template.style === "dark"
           ? "bg-[#111318] text-white"
           : template.style === "minimal"
-            ? "bg-[#f5f3ee] text-[#24231f]"
+            ? "bg-[#eef1f6] text-[#24231f]"
             : template.style === "creative"
               ? "bg-[#fff0e8] text-[#30221e]"
               : template.style === "professional"
                 ? "bg-[#edf3fa] text-[#193451]"
                 : template.style === "photographer"
-                  ? "bg-[#171717] text-white"
+                  ? "bg-[#0b1220] text-white"
                   : "bg-[#e9f5ed] text-[#163f30]"
       }`}
     >
@@ -357,12 +356,12 @@ export default function Templates() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8f8f7] px-4 py-6 text-[#171717] sm:px-8 sm:py-10">
+    <main className="min-h-screen bg-[#f4f6fa] px-4 py-6 text-[#0b1220] sm:px-8 sm:py-10">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <button
           onClick={() => navigate("/dashboard")}
-          className="mb-8 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium transition hover:border-black"
+          className="mb-8 inline-flex items-center gap-2 rounded-lg border border-[#e2e8f0] bg-white px-4 py-2.5 text-sm font-medium transition hover:border-[#2f54eb]"
         >
           <span className="text-lg">←</span>
           Back to dashboard
@@ -370,21 +369,21 @@ export default function Templates() {
 
         <header className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[3px] text-gray-500">
+            <p className="text-sm text-[#64748b]">
               Your work deserves a great home
             </p>
-            <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+            <h1 className="mt-2 font-display text-4xl font-bold tracking-tight sm:text-5xl">
               Choose your template.
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-500 sm:text-base">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#475569] sm:text-base">
               Start with a design that suits your work. Add your details,
               showcase your projects, and make it yours.
             </p>
           </div>
 
-          <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
+          <div className="rounded-xl border border-[#e2e8f0] bg-white px-4 py-3 text-sm">
             <span className="font-bold">{filteredTemplates.length}</span>
-            <span className="text-gray-500"> designs to explore</span>
+            <span className="text-[#64748b]"> designs to explore</span>
           </div>
         </header>
 
@@ -396,8 +395,8 @@ export default function Templates() {
               onClick={() => setCategory(item)}
               className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-medium transition ${
                 category === item
-                  ? "border-black bg-black text-white"
-                  : "border-gray-200 bg-white text-gray-600 hover:border-gray-400"
+                  ? "border-[#2f54eb] bg-[#2f54eb] text-white"
+                  : "border-[#e2e8f0] bg-white text-[#475569] hover:border-[#94a3b8]"
               }`}
             >
               {item}
@@ -410,14 +409,14 @@ export default function Templates() {
           {filteredTemplates.map((template) => (
             <article
               key={template.id}
-              className="group overflow-hidden rounded-2xl border border-gray-200 bg-white transition duration-200 hover:-translate-y-1 hover:border-gray-300 hover:shadow-xl"
+              className="group overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white transition duration-200 hover:border-[#cbd5e1] hover:shadow-xl"
             >
               <div className="relative p-2">
                 <div className="overflow-hidden rounded-xl">
                   <TemplatePreview template={template} />
                 </div>
 
-                <span className="absolute left-5 top-5 rounded-full border border-white/50 bg-white/95 px-3 py-1.5 text-[10px] font-bold text-gray-800 shadow-sm">
+                <span className="absolute left-5 top-5 rounded-full border border-white/50 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-gray-800 shadow-sm">
                   {template.label}
                 </span>
               </div>
@@ -425,17 +424,17 @@ export default function Templates() {
               <div className="p-5 pt-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <span className="text-xs font-medium text-[#64748b]">
                       {template.category}
                     </span>
-                    <h2 className="mt-1 text-lg font-bold">
+                    <h2 className="mt-1 font-display text-lg font-bold">
                       {template.name}
                     </h2>
-                    <p className="mt-2 text-sm leading-6 text-gray-500">
+                    <p className="mt-2 text-sm leading-6 text-[#475569]">
                       {template.description}
                     </p>
                   </div>
-                  <span className="shrink-0 rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-semibold">
+                  <span className="shrink-0 rounded-lg bg-[#eef2ff] px-2.5 py-1.5 text-xs font-semibold text-[#2f54eb]">
                     Free
                   </span>
                 </div>
@@ -444,7 +443,7 @@ export default function Templates() {
                   {template.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-md bg-gray-50 px-2.5 py-1.5 text-xs text-gray-600 ring-1 ring-gray-100"
+                      className="rounded-md bg-[#f4f6fa] px-2.5 py-1.5 text-xs text-[#475569] ring-1 ring-[#e2e8f0]"
                     >
                       {tag}
                     </span>
@@ -454,15 +453,15 @@ export default function Templates() {
                 <div className="mt-5 grid grid-cols-2 gap-3">
                   <button
                     onClick={() => setSelected(template)}
-                    className="rounded-xl border border-gray-200 px-3 py-3 text-sm font-semibold transition hover:bg-gray-50"
+                    className="rounded-lg border border-[#e2e8f0] px-3 py-3 text-sm font-semibold transition hover:bg-[#f4f6fa]"
                   >
                     Preview
                   </button>
                   <button
                     onClick={() => useTemplate(template)}
-                    className="rounded-xl bg-black px-3 py-3 text-sm font-semibold text-white transition hover:bg-gray-800"
+                    className="rounded-lg bg-[#2f54eb] px-3 py-3 text-sm font-semibold text-white transition hover:bg-[#2443c4]"
                   >
-                    Use template <span aria-hidden="true">→</span>
+                    Use template
                   </button>
                 </div>
               </div>
@@ -473,9 +472,7 @@ export default function Templates() {
         {filteredTemplates.length === 0 && (
           <div className="mt-8 rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center">
             <h2 className="font-bold">No templates found</h2>
-            <p className="mt-2 text-sm text-gray-500">
-              Try another category.
-            </p>
+            <p className="mt-2 text-sm text-[#64748b]">Try another category.</p>
           </div>
         )}
 
@@ -494,39 +491,39 @@ export default function Templates() {
             >
               <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                  <p className="text-xs font-medium text-[#64748b]">
                     {selected.category}
                   </p>
-                  <h2 className="mt-1 text-2xl font-bold text-black">
+                  <h2 className="mt-1 font-display text-2xl font-bold text-[#0b1220]">
                     {selected.name}
                   </h2>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-[#475569]">
                     {selected.description}
                   </p>
                 </div>
 
                 <button
                   onClick={() => setSelected(null)}
-                  className="shrink-0 rounded-lg border border-gray-200 px-3 py-2 text-sm text-black hover:bg-gray-50"
+                  className="shrink-0 rounded-lg border border-[#e2e8f0] px-3 py-2 text-sm text-[#0b1220] hover:bg-[#f4f6fa]"
                 >
                   Close ✕
                 </button>
               </div>
 
-              <div className="overflow-hidden rounded-xl border border-gray-200">
+              <div className="overflow-hidden rounded-xl border border-[#e2e8f0]">
                 <TemplatePreview template={selected} large />
               </div>
 
               <div className="mt-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-                <p className="text-xs leading-5 text-gray-500">
+                <p className="text-xs leading-5 text-[#64748b]">
                   This is a design preview. Your information can be added in
                   the portfolio editor.
                 </p>
                 <button
                   onClick={() => useTemplate(selected)}
-                  className="shrink-0 rounded-xl bg-black px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800"
+                  className="shrink-0 rounded-lg bg-[#2f54eb] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2443c4]"
                 >
-                  Use this template →
+                  Use this template
                 </button>
               </div>
             </div>
