@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 
 import AppLayout from "./AppLayout";
+import Landing from "./Landing";
 import Login from "./Login";
 import Signup from "./Signup";
 import UserDashboard from "./UserDashboard";
@@ -26,6 +27,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
@@ -36,7 +38,6 @@ export default function App() {
             </RequireAuth>
           }
         >
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<UserDashboard />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/my-portfolios" element={<MyPortfolios />} />
@@ -44,7 +45,7 @@ export default function App() {
           <Route path="/create-portfolio" element={<CreatePortfolio />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
