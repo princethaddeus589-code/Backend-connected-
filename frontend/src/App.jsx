@@ -10,6 +10,7 @@ import Landing from "./Landing";
 import Login from "./Login";
 import Signup from "./Signup";
 import UserDashboard from "./UserDashboard";
+import AiTools from "./AiTools";
 import Settings from "./Settings";
 import MyPortfolios from "./MyPortfolios";
 import Templates from "./Templates";
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/my-portfolios" element={<MyPortfolios />} />
           <Route path="/templates" element={<Templates />} />
+          <Route path="/ai-tools" element={<AiTools />} />
           <Route path="/create-portfolio" element={<CreatePortfolio />} />
         </Route>
 
