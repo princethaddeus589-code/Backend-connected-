@@ -120,14 +120,13 @@ app.post("/api/signin", async (req, res) => {
       const code = data?.error?.message || "UNKNOWN";
       console.error("SIGNIN ERROR:", code);
 
-      // Config problems are not the user's fault - show them clearly
-      if (code.startsWith("API_KEY") || code === "OPERATION_NOT_ALLOWED") {
+      if (code.startsWith("API_KEY") || code.includes("API key") || code === "OPERATION_NOT_ALLOWED") {
         return res.status(500).json({ message: "Server config error: " + code });
       }
       if (code === "EMAIL_NOT_FOUND") {
         return res.status(401).json({ message: "No account found with this email" });
       }
-            return res.status(401).json({ message: "Email or password is incorrect (" + code + ")" });
+      return res.status(401).json({ message: "Email or password is incorrect" });
     }
 
     // Get display name from Firebase Admin
@@ -147,6 +146,111 @@ app.post("/api/signin", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(401).json({ message: "Sign in failed" });
+  }
+});
+
+// AI WRITING HELPER (free Google Gemini key: GEMINI_API_KEY)
+const AI_HITS = new Map();
+const AI_SYSTEM =
+  "You are a writing assistant inside Portfolia, a portfolio builder used by students, professionals, freelancers and founders. " +
+  "Write clear, natural, first-person text based only on the details the user gives. " +
+  "Never invent employers, degrees, numbers, awards or links. Keep it concise. Reply with the text only, no preamble.";
+const AI_TASKS = {
+  bio: "Write a short portfolio bio of 2 to 3 sentences.",
+  project: "Write a clear project or achievement description of 2 to 4 sentences, focused on what was done and the result.",
+  skills: "Suggest 8 to 10 relevant skills as a comma-separated list. Only list the skills.",
+  polish: "Improve the wording, clarity and grammar of this text. Keep the meaning and the length similar.",
+};
+
+app.post("/api/ai/write", async (req, res) => {
+  try {
+    const header = req.headers.authorization || "";
+    const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+    if (!token) return res.status(401).json({ message: "Please sign in again." });
+
+    let uid;
+    try {
+      uid = (await auth.verifyIdToken(token)).uid;
+    } catch {
+      return res.status(401).json({ message: "Your session expired. Please sign out and sign in again." });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({ message: "AI is not set up yet. Add GEMINI_API_KEY on the server." });
+    }
+
+    const { tool, input, tone } = req.body || {};
+    if (!AI_TASKS[tool] || typeof input !== "string" || !input.trim()) {
+      return res.status(400).json({ message: "Please add some notes first." });
+    }
+
+    const now = Date.now();
+    const hits = (AI_HITS.get(uid) || []).filter((t) => now - t < 3600000);
+    if (hits.length >= 20) {
+      return res.status(429).json({ message: "You reached the hourly AI limit. Try again later." });
+    }
+    hits.push(now);
+    AI_HITS.set(uid, hits);
+
+    const safeTone = ["Professional", "Friendly", "Confident"].includes(tone) ? tone : "Professional";
+    const model = process.env.AI_MODEL || "gemini-2.5-flash";
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: AI_SYSTEM }] },
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: `${AI_TASKS[tool]}\nTone: ${safeTone}\n\nUser details:\n${input.trim().slice(0, 2000)}`,
+                },
+              ],
+            },
+          ],
+          generationConfig: { maxOutputTokens: 2048, temperature: 0.7 },
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const msg = data?.error?.message || String(response.status);
+      console.error("AI ERROR:", response.status, msg);
+      if (response.status === 429) {
+        return res.status(429).json({ message: "The free AI limit was reached for now. Please try again in a minute." });
+      }
+      if (response.status === 404) {
+        return res.status(502).json({ message: "AI model not found. Set AI_MODEL to a model listed in Google AI Studio." });
+      }
+      if (response.status === 400 || response.status === 403) {
+        return res.status(502).json({ message: "AI key problem. Check GEMINI_API_KEY on the server." });
+      }
+      return res.status(502).json({ message: "The AI service could not answer right now. Please try again." });
+    }
+
+    const text = (data.candidates?.[0]?.content?.parts || [])
+      .map((p) => p.text || "")
+      .join("")
+      .trim();
+
+    if (!text) {
+      return res.status(502).json({ message: "The AI returned no text. Try rephrasing your notes." });
+    }
+
+    res.json({ text });
+  } catch (error) {
+    console.error("AI ROUTE ERROR:", error);
+    res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 });
 
