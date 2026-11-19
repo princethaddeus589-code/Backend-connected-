@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -70,9 +69,7 @@ export default function CreatePortfolio() {
     window.addEventListener("storage", updateTheme);
 
     // Handle System appearance changes.
-    const systemTheme = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    );
+    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
 
     systemTheme.addEventListener("change", updateTheme);
 
@@ -107,9 +104,7 @@ export default function CreatePortfolio() {
         createdAt: new Date().toISOString(),
       };
 
-      const existing = JSON.parse(
-        localStorage.getItem("portfolios") || "[]"
-      );
+      const existing = JSON.parse(localStorage.getItem("portfolios") || "[]");
 
       localStorage.setItem(
         "portfolios",
@@ -122,26 +117,22 @@ export default function CreatePortfolio() {
     }
   }
 
-  const page = dark
-    ? "bg-black text-white"
-    : "bg-gray-50 text-gray-950";
+  const page = dark ? "bg-[#0b1220] text-white" : "bg-[#f4f6fa] text-[#0b1220]";
 
   const panel = dark
-    ? "border-gray-800 bg-gray-950 text-white"
-    : "border-gray-200 bg-white text-gray-950";
+    ? "border-[#1e293b] bg-[#111a2e] text-white"
+    : "border-[#e2e8f0] bg-white text-[#0b1220]";
 
   const field = dark
-    ? "border-gray-700 bg-black text-white placeholder-gray-500"
-    : "border-gray-200 bg-white text-gray-900 placeholder-gray-400";
+    ? "border-[#334155] bg-[#0b1220] text-white placeholder-slate-500"
+    : "border-[#e2e8f0] bg-white text-[#0b1220] placeholder-slate-400";
 
-  const muted = dark ? "text-gray-400" : "text-gray-500";
+  const muted = dark ? "text-slate-400" : "text-slate-500";
 
-  const primary = dark
-    ? "bg-white text-black hover:bg-gray-200"
-    : "bg-black text-white hover:bg-gray-800";
+  const primary = "bg-[#2f54eb] text-white hover:bg-[#2443c4]";
 
   const previewColors = dark
-    ? "border border-gray-800 bg-black text-white"
+    ? "border border-[#1e293b] bg-[#0b1220] text-white"
     : lightTemplateColors[templateId] || lightTemplateColors.devfolio;
 
   function renderPortfolio() {
@@ -223,6 +214,8 @@ export default function CreatePortfolio() {
     );
   }
 
+  const inputClass = `w-full rounded-lg border px-4 py-3 outline-none focus:border-[#2f54eb] focus:ring-4 focus:ring-[#2f54eb]/15 ${field}`;
+
   return (
     <main className={`min-h-screen transition-colors duration-200 ${page}`}>
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
@@ -231,12 +224,12 @@ export default function CreatePortfolio() {
             <button
               type="button"
               onClick={() => navigate("/templates")}
-              className={`mb-5 rounded-xl border px-4 py-2 text-sm transition hover:opacity-80 ${panel}`}
+              className={`mb-5 rounded-lg border px-4 py-2 text-sm transition hover:opacity-80 ${panel}`}
             >
               ← Back to templates
             </button>
 
-            <h1 className="text-3xl font-bold sm:text-4xl">
+            <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
               Create your portfolio
             </h1>
 
@@ -248,27 +241,25 @@ export default function CreatePortfolio() {
           <button
             type="button"
             onClick={() => setPreview(!preview)}
-            className={`rounded-xl border px-5 py-3 font-semibold transition hover:opacity-80 ${panel}`}
+            className={`rounded-lg border px-5 py-3 text-sm font-semibold transition hover:opacity-80 ${panel}`}
           >
             {preview ? "← Edit details" : "Preview portfolio"}
           </button>
         </header>
 
-        <div className={`mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 ${panel}`}>
+        <div
+          className={`mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 ${panel}`}
+        >
           <div>
-            <p className={`text-xs uppercase tracking-widest ${muted}`}>
-              Selected template
-            </p>
+            <p className={`text-sm ${muted}`}>Selected template</p>
 
-            <p className="mt-1 font-bold">
-              {templates[templateId] || "Devfolio"}
-            </p>
+            <p className="mt-1 font-bold">{templates[templateId] || "Devfolio"}</p>
           </div>
 
           <button
             type="button"
             onClick={() => navigate("/templates")}
-            className="text-sm font-semibold underline underline-offset-4"
+            className="text-sm font-semibold text-[#2f54eb] underline underline-offset-4"
           >
             Change template
           </button>
@@ -281,7 +272,7 @@ export default function CreatePortfolio() {
             <button
               type="button"
               onClick={() => setPreview(false)}
-              className={`mt-5 rounded-xl px-5 py-3 font-semibold ${primary}`}
+              className={`mt-5 rounded-lg px-5 py-3 text-sm font-semibold ${primary}`}
             >
               Continue editing
             </button>
@@ -293,12 +284,10 @@ export default function CreatePortfolio() {
               className={`space-y-6 rounded-2xl border p-5 sm:p-8 ${panel}`}
             >
               <div>
-                <h2 className="text-xl font-bold">
+                <h2 className="font-display text-xl font-bold">
                   Personal information
                 </h2>
-                <p className={`mt-1 text-sm ${muted}`}>
-                  Tell people who you are.
-                </p>
+                <p className={`mt-1 text-sm ${muted}`}>Tell people who you are.</p>
               </div>
 
               {[
@@ -322,7 +311,7 @@ export default function CreatePortfolio() {
                     placeholder={item.placeholder}
                     required={item.name === "name"}
                     type={item.name === "email" ? "email" : "text"}
-                    className={`w-full rounded-xl border px-4 py-3 outline-none focus:border-gray-500 ${field}`}
+                    className={inputClass}
                   />
                 </div>
               ))}
@@ -338,7 +327,7 @@ export default function CreatePortfolio() {
                   onChange={handleChange}
                   rows={4}
                   placeholder="Introduce yourself and explain what you do..."
-                  className={`w-full rounded-xl border px-4 py-3 outline-none focus:border-gray-500 ${field}`}
+                  className={inputClass}
                 />
               </div>
 
@@ -352,22 +341,29 @@ export default function CreatePortfolio() {
                   value={form.skills}
                   onChange={handleChange}
                   placeholder="React, JavaScript, Tailwind CSS"
-                  className={`w-full rounded-xl border px-4 py-3 outline-none focus:border-gray-500 ${field}`}
+                  className={inputClass}
                 />
                 <p className={`mt-2 text-xs ${muted}`}>
                   Separate each skill with a comma.
                 </p>
               </div>
 
-              <div className={`border-t pt-6 ${dark ? "border-gray-800" : "border-gray-200"}`}>
-                <h2 className="text-xl font-bold">Featured project</h2>
+              <div
+                className={`border-t pt-6 ${
+                  dark ? "border-[#1e293b]" : "border-[#e2e8f0]"
+                }`}
+              >
+                <h2 className="font-display text-xl font-bold">Featured project</h2>
                 <p className={`mt-1 text-sm ${muted}`}>
                   Add a project you are proud of.
                 </p>
               </div>
 
               <div>
-                <label htmlFor="projectTitle" className="mb-2 block text-sm font-medium">
+                <label
+                  htmlFor="projectTitle"
+                  className="mb-2 block text-sm font-medium"
+                >
                   Project title
                 </label>
                 <input
@@ -376,12 +372,15 @@ export default function CreatePortfolio() {
                   value={form.projectTitle}
                   onChange={handleChange}
                   placeholder="My first web application"
-                  className={`w-full rounded-xl border px-4 py-3 outline-none focus:border-gray-500 ${field}`}
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label htmlFor="projectDescription" className="mb-2 block text-sm font-medium">
+                <label
+                  htmlFor="projectDescription"
+                  className="mb-2 block text-sm font-medium"
+                >
                   Project description
                 </label>
                 <textarea
@@ -391,12 +390,15 @@ export default function CreatePortfolio() {
                   onChange={handleChange}
                   rows={3}
                   placeholder="What does your project do?"
-                  className={`w-full rounded-xl border px-4 py-3 outline-none focus:border-gray-500 ${field}`}
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label htmlFor="projectLink" className="mb-2 block text-sm font-medium">
+                <label
+                  htmlFor="projectLink"
+                  className="mb-2 block text-sm font-medium"
+                >
                   Project link
                 </label>
                 <input
@@ -406,7 +408,7 @@ export default function CreatePortfolio() {
                   value={form.projectLink}
                   onChange={handleChange}
                   placeholder="https://example.com"
-                  className={`w-full rounded-xl border px-4 py-3 outline-none focus:border-gray-500 ${field}`}
+                  className={inputClass}
                 />
               </div>
 
@@ -427,14 +429,14 @@ export default function CreatePortfolio() {
                 <button
                   type="button"
                   onClick={() => setPreview(true)}
-                  className={`rounded-xl border px-5 py-3 font-semibold ${panel}`}
+                  className={`rounded-lg border px-5 py-3 text-sm font-semibold ${panel}`}
                 >
                   Preview
                 </button>
 
                 <button
                   type="submit"
-                  className={`rounded-xl px-5 py-3 font-semibold ${primary}`}
+                  className={`rounded-lg px-5 py-3 text-sm font-semibold ${primary}`}
                 >
                   Save portfolio
                 </button>
@@ -447,7 +449,7 @@ export default function CreatePortfolio() {
 
             <aside className="min-w-0 lg:sticky lg:top-6">
               <div className="mb-3">
-                <h2 className="font-bold">Live preview</h2>
+                <h2 className="font-display font-bold">Live preview</h2>
                 <p className={`mt-1 text-sm ${muted}`}>
                   Your changes appear here as you type.
                 </p>
