@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { clearSession } from "./api";
+import Logo from "./Logo";
 
 const menu = [
   { name: "Overview", path: "/dashboard", icon: "▦" },
@@ -27,21 +28,14 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f6f4ef] text-[#20211f] md:flex">
+    <div className="min-h-screen bg-mist text-ink md:flex">
       {/* Sidebar */}
-      <aside className="border-b border-[#e8e4dc] bg-[#faf9f6] md:flex md:w-64 md:flex-col md:border-b-0 md:border-r">
+      <aside className="border-b border-line bg-white md:flex md:w-64 md:flex-none md:flex-col md:border-b-0 md:border-r">
         <div className="flex items-center justify-between p-4 md:p-5">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-xs font-bold text-[#d8e8c8]">
-              p
-            </div>
-            <span className="text-base font-semibold tracking-tight">
-              portfolia.
-            </span>
-          </div>
+          <Logo />
           <button
             type="button"
-            className="rounded-lg border border-[#e5e1d8] px-3 py-1.5 text-xs md:hidden"
+            className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium md:hidden"
             onClick={() => setMobileOpen((v) => !v)}
           >
             {mobileOpen ? "Close" : "Menu"}
@@ -49,22 +43,18 @@ export default function AppLayout() {
         </div>
 
         <div className="hidden px-4 pb-3 md:block">
-          <div className="rounded-2xl border border-[#e8e4dc] bg-white p-3">
+          <div className="rounded-xl border border-line bg-mist p-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e8e0d0] text-xs font-bold text-[#5a6b4a]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-cobalt text-xs font-bold text-white">
                 {initials}
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{userName}</p>
-                <p className="truncate text-[11px] text-[#8a8a80]">Free plan</p>
+                <p className="truncate text-xs text-muted">Free plan</p>
               </div>
             </div>
           </div>
         </div>
-
-        <p className="hidden px-5 pb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#a0a098] md:block">
-          Workspace
-        </p>
 
         <nav
           className={`${
@@ -77,10 +67,10 @@ export default function AppLayout() {
               to={item.path}
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                   isActive
-                    ? "bg-[#e9efdf] text-[#3d4a32]"
-                    : "text-[#5c5c54] hover:bg-[#f0eee8]"
+                    ? "bg-cobalt/10 text-cobalt"
+                    : "text-body hover:bg-mist"
                 }`
               }
             >
@@ -91,19 +81,10 @@ export default function AppLayout() {
         </nav>
 
         <div className="mt-auto hidden p-4 md:block">
-          <div className="rounded-2xl border border-[#e8e4dc] bg-[#eef3e6] p-4">
-            <p className="text-sm font-semibold text-[#3d4a32]">
-              Make it unforgettable.
-            </p>
-            <p className="mt-1 text-xs leading-relaxed text-[#6b6b62]">
-              Unlock premium templates and smarter tools.
-            </p>
-          </div>
-
           <button
             type="button"
             onClick={handleLogout}
-            className="mt-3 w-full rounded-xl border border-[#e5e1d8] bg-white py-2.5 text-xs font-semibold text-[#5c5c54] transition hover:bg-[#f6f4ef]"
+            className="w-full rounded-lg border border-line bg-white py-2.5 text-sm font-semibold text-body transition hover:bg-mist"
           >
             Sign out
           </button>
@@ -111,16 +92,16 @@ export default function AppLayout() {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-auto">
-        <div className="flex items-center justify-between border-b border-[#e8e4dc] bg-[#faf9f6]/80 px-4 py-3 backdrop-blur md:hidden">
-          <div>
-            <p className="text-sm font-semibold">{userName}</p>
-            <p className="text-xs text-[#8a8a80]">{userEmail}</p>
+      <main className="min-w-0 flex-1 overflow-auto">
+        <div className="flex items-center justify-between border-b border-line bg-white px-4 py-3 md:hidden">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">{userName}</p>
+            <p className="truncate text-xs text-muted">{userEmail}</p>
           </div>
           <button
             type="button"
             onClick={handleLogout}
-            className="rounded-lg border border-[#e5e1d8] px-3 py-1.5 text-xs font-semibold"
+            className="rounded-lg border border-line px-3 py-1.5 text-xs font-semibold"
           >
             Sign out
           </button>
