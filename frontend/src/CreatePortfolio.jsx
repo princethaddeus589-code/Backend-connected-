@@ -1,465 +1,214 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import TemplateView, { Scaled } from "./TemplateView";
+import { TEMPLATES, emptyPortfolio } from "./templates";
+import { apiAiWrite } from "./api";
 
-const templates = {
-  devfolio: "Devfolio",
-  minimal: "Monochrome",
-  creative: "Creative Studio",
-  professional: "Executive",
-  photographer: "Visual Stories",
-  freelancer: "Freelance Pro",
-};
+const input =
+  "w-full rounded-lg border border-line bg-white px-3.5 py-3 text-base text-ink outline-none transition placeholder:text-muted/70 focus:border-cobalt focus:ring-4 focus:ring-cobalt/15 sm:text-sm";
 
-const lightTemplateColors = {
-  devfolio: "bg-lime-400 text-black",
-  minimal: "bg-stone-200 text-stone-900",
-  creative: "bg-orange-200 text-orange-950",
-  professional: "bg-blue-100 text-blue-950",
-  photographer: "bg-gray-950 text-white",
-  freelancer: "bg-green-100 text-green-950",
-};
-
-function getIsDark() {
-  const appearance = localStorage.getItem("appearance");
-
-  if (appearance === "dark") return true;
-  if (appearance === "light") return false;
-
-  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+function Field({ label, hint, action, children }) {
+  return (
+    <div>
+      <div className="mb-1.5 flex items-center justify-between gap-3">
+        <label className="text-sm font-medium">{label}</label>
+        {action}
+      </div>
+      {children}
+      {hint && <p className="mt-1.5 text-xs text-muted">{hint}</p>}
+    </div>
+  );
 }
 
 export default function CreatePortfolio() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { state } = useLocation();
+  const existing = state?.portfolio || null;
 
-  const templateId =
-    location.state?.templateId ||
-    sessionStorage.getItem("selectedTemplate") ||
-    "devfolio";
-
-  const [dark, setDark] = useState(getIsDark);
-  const [preview, setPreview] = useState(false);
+  const [templateId, setTemplateId] = useState(
+    existing?.templateId || state?.templateId || sessionStorage.getItem("selectedTemplate") || "professional"
+  );
+  const [form, setForm] = useState(() =>
+    existing
+      ? { ...emptyPortfolio, ...existing }
+      : {
+          ...emptyPortfolio,
+          name: localStorage.getItem("userName") || "",
+          email: localStorage.getItem("userEmail") || "",
+        }
+  );
+  const [tab, setTab] = useState("edit");
   const [message, setMessage] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
 
-  const [form, setForm] = useState({
-    name: localStorage.getItem("userName") || "",
-    title: "",
-    bio: "",
-    email: localStorage.getItem("userEmail") || "",
-    skills: "",
-    projectTitle: "",
-    projectDescription: "",
-    projectLink: "",
-  });
-
-  // Follow changes made in Settings.jsx.
-  useEffect(() => {
-    const updateTheme = () => {
-      setDark(getIsDark());
-    };
-
-    const observer = new MutationObserver(updateTheme);
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    // Also detect appearance changes in another tab.
-    window.addEventListener("storage", updateTheme);
-
-    // Handle System appearance changes.
-    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
-
-    systemTheme.addEventListener("change", updateTheme);
-
-    updateTheme();
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("storage", updateTheme);
-      systemTheme.removeEventListener("change", updateTheme);
-    };
-  }, []);
-
-  function handleChange(e) {
-    const { name, value } = e.target;
-
-    setForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-
+  function set(e) {
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     setMessage("");
   }
 
-  function savePortfolio(e) {
-    e.preventDefault();
-
+  async function writeBio() {
+    if (!form.title && !form.skills && !form.highlights) {
+      setMessage("Add your role, skills or background first so the AI has something to work with.");
+      return;
+    }
+    setAiBusy(true);
+    setMessage("");
     try {
-      const portfolio = {
-        ...form,
-        id: crypto.randomUUID(),
-        templateId,
-        createdAt: new Date().toISOString(),
-      };
+      const text = await apiAiWrite({
+        tool: "bio",
+        tone: "Professional",
+        input: `Name: ${form.name}\nRole: ${form.title}\nSkills: ${form.skills}\nBackground:\n${form.highlights}\nCurrent bio: ${form.bio}`,
+      });
+      setForm((f) => ({ ...f, bio: text }));
+    } catch (err) {
+      setMessage(err.message);
+    } finally {
+      setAiBusy(false);
+    }
+  }
 
-      const existing = JSON.parse(localStorage.getItem("portfolios") || "[]");
-
-      localStorage.setItem(
-        "portfolios",
-        JSON.stringify([...existing, portfolio])
-      );
-
-      setMessage("Portfolio saved successfully!");
+  function save(e) {
+    e.preventDefault();
+    if (!form.name.trim()) {
+      setMessage("Please enter your name.");
+      return;
+    }
+    try {
+      const list = JSON.parse(localStorage.getItem("portfolios") || "[]");
+      const record = existing
+        ? { ...existing, ...form, templateId, updatedAt: new Date().toISOString() }
+        : { ...form, id: crypto.randomUUID(), templateId, createdAt: new Date().toISOString() };
+      const next = existing ? list.map((p) => (p.id === existing.id ? record : p)) : [...list, record];
+      localStorage.setItem("portfolios", JSON.stringify(next));
+      window.dispatchEvent(new Event("portfolios-change"));
+      navigate("/my-portfolios");
     } catch {
       setMessage("Could not save your portfolio. Please try again.");
     }
   }
 
-  const page = dark ? "bg-[#0b1220] text-white" : "bg-[#f4f6fa] text-[#0b1220]";
-
-  const panel = dark
-    ? "border-[#1e293b] bg-[#111a2e] text-white"
-    : "border-[#e2e8f0] bg-white text-[#0b1220]";
-
-  const field = dark
-    ? "border-[#334155] bg-[#0b1220] text-white placeholder-slate-500"
-    : "border-[#e2e8f0] bg-white text-[#0b1220] placeholder-slate-400";
-
-  const muted = dark ? "text-slate-400" : "text-slate-500";
-
-  const primary = "bg-[#2f54eb] text-white hover:bg-[#2443c4]";
-
-  const previewColors = dark
-    ? "border border-[#1e293b] bg-[#0b1220] text-white"
-    : lightTemplateColors[templateId] || lightTemplateColors.devfolio;
-
-  function renderPortfolio() {
-    const skills = form.skills
-      .split(",")
-      .map((skill) => skill.trim())
-      .filter(Boolean);
-
-    return (
-      <div
-        className={`min-h-[500px] overflow-hidden rounded-2xl p-7 transition-colors duration-200 sm:p-10 ${previewColors}`}
-      >
-        <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-70">
-          {templates[templateId] || "My Portfolio"}
-        </p>
-
-        <h2 className="mt-10 break-words text-4xl font-black sm:text-6xl">
-          {form.name || "Your Name"}
-        </h2>
-
-        <h3 className="mt-3 text-xl font-semibold sm:text-2xl">
-          {form.title || "Your professional title"}
-        </h3>
-
-        <p className="mt-6 max-w-2xl whitespace-pre-wrap text-sm leading-7 opacity-80 sm:text-base">
-          {form.bio || "Write a short introduction about yourself."}
-        </p>
-
-        {skills.length > 0 && (
-          <div className="mt-8">
-            <h4 className="font-bold">Skills</h4>
-
-            <div className="mt-3 flex flex-wrap gap-2">
-              {skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="rounded-full border border-current/20 px-3 py-1.5 text-sm"
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {(form.projectTitle || form.projectDescription) && (
-          <div className="mt-10 border-t border-current/20 pt-6">
-            <h4 className="text-xs font-bold uppercase tracking-widest opacity-70">
-              Featured project
-            </h4>
-
-            <h3 className="mt-3 break-words text-2xl font-bold">
-              {form.projectTitle || "Project title"}
-            </h3>
-
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 opacity-80">
-              {form.projectDescription}
-            </p>
-
-            {form.projectLink && (
-              <a
-                href={form.projectLink}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-4 inline-block underline underline-offset-4"
-              >
-                View project ↗
-              </a>
-            )}
-          </div>
-        )}
-
-        {form.email && (
-          <p className="mt-10 break-all border-t border-current/20 pt-5 text-sm">
-            Contact: {form.email}
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  const inputClass = `w-full rounded-lg border px-4 py-3 outline-none focus:border-[#2f54eb] focus:ring-4 focus:ring-[#2f54eb]/15 ${field}`;
-
   return (
-    <main className={`min-h-screen transition-colors duration-200 ${page}`}>
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
-        <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <button
-              type="button"
-              onClick={() => navigate("/templates")}
-              className={`mb-5 rounded-lg border px-4 py-2 text-sm transition hover:opacity-80 ${panel}`}
-            >
-              ← Back to templates
-            </button>
+    <div>
+      <header>
+        <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+          {existing ? "Edit your portfolio" : "Create your portfolio"}
+        </h1>
+        <p className="mt-2 text-body">Fill in your details and watch the template update as you type.</p>
+      </header>
 
-            <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-              Create your portfolio
-            </h1>
-
-            <p className={`mt-2 ${muted}`}>
-              Build a portfolio that showcases your best work.
-            </p>
-          </div>
-
+      <div className="-mx-5 mt-6 flex gap-2 overflow-x-auto px-5 pb-1">
+        {TEMPLATES.map((t) => (
           <button
+            key={t.id}
             type="button"
-            onClick={() => setPreview(!preview)}
-            className={`rounded-lg border px-5 py-3 text-sm font-semibold transition hover:opacity-80 ${panel}`}
+            onClick={() => setTemplateId(t.id)}
+            className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${
+              templateId === t.id
+                ? "border-cobalt bg-cobalt text-white"
+                : "border-line bg-white text-body hover:border-slate-400"
+            }`}
           >
-            {preview ? "← Edit details" : "Preview portfolio"}
+            {t.name}
           </button>
-        </header>
-
-        <div
-          className={`mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 ${panel}`}
-        >
-          <div>
-            <p className={`text-sm ${muted}`}>Selected template</p>
-
-            <p className="mt-1 font-bold">{templates[templateId] || "Devfolio"}</p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => navigate("/templates")}
-            className="text-sm font-semibold text-[#2f54eb] underline underline-offset-4"
-          >
-            Change template
-          </button>
-        </div>
-
-        {preview ? (
-          <section>
-            {renderPortfolio()}
-
-            <button
-              type="button"
-              onClick={() => setPreview(false)}
-              className={`mt-5 rounded-lg px-5 py-3 text-sm font-semibold ${primary}`}
-            >
-              Continue editing
-            </button>
-          </section>
-        ) : (
-          <div className="grid items-start gap-6 lg:grid-cols-[1fr_0.85fr]">
-            <form
-              onSubmit={savePortfolio}
-              className={`space-y-6 rounded-2xl border p-5 sm:p-8 ${panel}`}
-            >
-              <div>
-                <h2 className="font-display text-xl font-bold">
-                  Personal information
-                </h2>
-                <p className={`mt-1 text-sm ${muted}`}>Tell people who you are.</p>
-              </div>
-
-              {[
-                { name: "name", label: "Full name", placeholder: "Your name" },
-                { name: "title", label: "Professional title", placeholder: "Frontend Developer" },
-                { name: "email", label: "Contact email", placeholder: "you@example.com" },
-              ].map((item) => (
-                <div key={item.name}>
-                  <label
-                    htmlFor={item.name}
-                    className="mb-2 block text-sm font-medium"
-                  >
-                    {item.label}
-                  </label>
-
-                  <input
-                    id={item.name}
-                    name={item.name}
-                    value={form[item.name]}
-                    onChange={handleChange}
-                    placeholder={item.placeholder}
-                    required={item.name === "name"}
-                    type={item.name === "email" ? "email" : "text"}
-                    className={inputClass}
-                  />
-                </div>
-              ))}
-
-              <div>
-                <label htmlFor="bio" className="mb-2 block text-sm font-medium">
-                  About you
-                </label>
-                <textarea
-                  id="bio"
-                  name="bio"
-                  value={form.bio}
-                  onChange={handleChange}
-                  rows={4}
-                  placeholder="Introduce yourself and explain what you do..."
-                  className={inputClass}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="skills" className="mb-2 block text-sm font-medium">
-                  Skills
-                </label>
-                <input
-                  id="skills"
-                  name="skills"
-                  value={form.skills}
-                  onChange={handleChange}
-                  placeholder="React, JavaScript, Tailwind CSS"
-                  className={inputClass}
-                />
-                <p className={`mt-2 text-xs ${muted}`}>
-                  Separate each skill with a comma.
-                </p>
-              </div>
-
-              <div
-                className={`border-t pt-6 ${
-                  dark ? "border-[#1e293b]" : "border-[#e2e8f0]"
-                }`}
-              >
-                <h2 className="font-display text-xl font-bold">Featured project</h2>
-                <p className={`mt-1 text-sm ${muted}`}>
-                  Add a project you are proud of.
-                </p>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="projectTitle"
-                  className="mb-2 block text-sm font-medium"
-                >
-                  Project title
-                </label>
-                <input
-                  id="projectTitle"
-                  name="projectTitle"
-                  value={form.projectTitle}
-                  onChange={handleChange}
-                  placeholder="My first web application"
-                  className={inputClass}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="projectDescription"
-                  className="mb-2 block text-sm font-medium"
-                >
-                  Project description
-                </label>
-                <textarea
-                  id="projectDescription"
-                  name="projectDescription"
-                  value={form.projectDescription}
-                  onChange={handleChange}
-                  rows={3}
-                  placeholder="What does your project do?"
-                  className={inputClass}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="projectLink"
-                  className="mb-2 block text-sm font-medium"
-                >
-                  Project link
-                </label>
-                <input
-                  id="projectLink"
-                  name="projectLink"
-                  type="url"
-                  value={form.projectLink}
-                  onChange={handleChange}
-                  placeholder="https://example.com"
-                  className={inputClass}
-                />
-              </div>
-
-              {message && (
-                <p
-                  role="status"
-                  className={`text-sm ${
-                    message.includes("successfully")
-                      ? "text-green-500"
-                      : "text-red-500"
-                  }`}
-                >
-                  {message}
-                </p>
-              )}
-
-              <div className="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={() => setPreview(true)}
-                  className={`rounded-lg border px-5 py-3 text-sm font-semibold ${panel}`}
-                >
-                  Preview
-                </button>
-
-                <button
-                  type="submit"
-                  className={`rounded-lg px-5 py-3 text-sm font-semibold ${primary}`}
-                >
-                  Save portfolio
-                </button>
-              </div>
-
-              <p className={`text-xs ${muted}`}>
-                Your portfolio is currently saved in this browser only.
-              </p>
-            </form>
-
-            <aside className="min-w-0 lg:sticky lg:top-6">
-              <div className="mb-3">
-                <h2 className="font-display font-bold">Live preview</h2>
-                <p className={`mt-1 text-sm ${muted}`}>
-                  Your changes appear here as you type.
-                </p>
-              </div>
-
-              {renderPortfolio()}
-            </aside>
-          </div>
-        )}
+        ))}
       </div>
-    </main>
+
+      <div className="mt-5 grid grid-cols-2 rounded-xl bg-white p-1 ring-1 ring-line lg:hidden">
+        {["edit", "preview"].map((k) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setTab(k)}
+            className={`rounded-lg py-2 text-sm font-semibold capitalize transition ${
+              tab === k ? "bg-ink text-white" : "text-body"
+            }`}
+          >
+            {k === "edit" ? "Details" : "Preview"}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
+        <form
+          onSubmit={save}
+          className={`space-y-5 rounded-2xl border border-line bg-white p-5 sm:p-7 ${
+            tab === "edit" ? "" : "hidden lg:block"
+          }`}
+        >
+          <h2 className="font-display text-xl font-bold">About you</h2>
+          <Field label="Full name">
+            <input name="name" value={form.name} onChange={set} className={input} placeholder="Your name" required />
+          </Field>
+          <Field label="Role or title" hint="For example: Marketing manager, Biology student, Photographer.">
+            <input name="title" value={form.title} onChange={set} className={input} placeholder="What do you do?" />
+          </Field>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Location">
+              <input name="location" value={form.location} onChange={set} className={input} placeholder="City, Country" />
+            </Field>
+            <Field label="Contact email">
+              <input name="email" type="email" value={form.email} onChange={set} className={input} placeholder="you@example.com" />
+            </Field>
+          </div>
+          <Field
+            label="Short bio"
+            action={
+              <button
+                type="button"
+                onClick={writeBio}
+                disabled={aiBusy}
+                className="rounded-md bg-cobalt/10 px-2.5 py-1 text-xs font-semibold text-cobalt transition hover:bg-cobalt/20 disabled:opacity-60"
+              >
+                {aiBusy ? "Writing…" : "Write with AI"}
+              </button>
+            }
+          >
+            <textarea name="bio" value={form.bio} onChange={set} rows={4} className={input} placeholder="Two or three sentences about who you are and what you do." />
+          </Field>
+
+          <h2 className="border-t border-line pt-5 font-display text-xl font-bold">Skills and background</h2>
+          <Field label="Skills" hint="Separate with commas.">
+            <input name="skills" value={form.skills} onChange={set} className={input} placeholder="Communication, Excel, Design, Research" />
+          </Field>
+          <Field label="Experience, education or achievements" hint="One item per line.">
+            <textarea name="highlights" value={form.highlights} onChange={set} rows={4} className={input} placeholder={"Marketing assistant, Acme Co.\nBSc Economics\nWon the regional pitch competition"} />
+          </Field>
+
+          <h2 className="border-t border-line pt-5 font-display text-xl font-bold">Featured work</h2>
+          <Field label="Project or achievement title">
+            <input name="projectTitle" value={form.projectTitle} onChange={set} className={input} placeholder="What are you proud of?" />
+          </Field>
+          <Field label="Description">
+            <textarea name="projectDescription" value={form.projectDescription} onChange={set} rows={3} className={input} placeholder="What was it, and what was the result?" />
+          </Field>
+          <Field label="Link (optional)">
+            <input name="projectLink" type="url" value={form.projectLink} onChange={set} className={input} placeholder="https://example.com" />
+          </Field>
+
+          {message && (
+            <p role="alert" className="rounded-lg bg-red-50 px-3.5 py-2.5 text-sm text-red-700">
+              {message}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            className="w-full rounded-lg bg-cobalt py-3 text-sm font-semibold text-white transition hover:bg-cobalt-dark"
+          >
+            {existing ? "Save changes" : "Save portfolio"}
+          </button>
+          <p className="text-xs text-muted">Portfolios are saved in this browser on this device.</p>
+        </form>
+
+        <aside className={`lg:sticky lg:top-24 ${tab === "preview" ? "" : "hidden lg:block"}`}>
+          <p className="mb-3 text-sm font-medium text-muted">Live preview</p>
+          <div className="overflow-hidden rounded-2xl border border-line shadow-sm">
+            <Scaled>
+              <TemplateView id={templateId} data={form} />
+            </Scaled>
+          </div>
+        </aside>
+      </div>
+    </div>
   );
 }
