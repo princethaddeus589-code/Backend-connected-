@@ -59,3 +59,4 @@ export function CountUp({ to, ms = 1200 }) {
     return () => cancelAnimationFrame(raf);
   }, [seen, to, ms]);
   return <span ref={ref}>{n}</span>;
+  }
