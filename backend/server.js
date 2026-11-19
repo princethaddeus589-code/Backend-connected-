@@ -127,7 +127,7 @@ app.post("/api/signin", async (req, res) => {
       if (code === "EMAIL_NOT_FOUND") {
         return res.status(401).json({ message: "No account found with this email" });
       }
-      return res.status(401).json({ message: "Email or password is incorrect" });
+            return res.status(401).json({ message: "Email or password is incorrect (" + code + ")" });
     }
 
     // Get display name from Firebase Admin
