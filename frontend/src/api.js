@@ -3,20 +3,15 @@ const API_BASE = (
   "https://backend-connected-hyw6.vercel.app"
 ).replace(/\/+$/, "");
 
-console.log("API_BASE:", API_BASE);
 export async function apiSignup({ name, email, password }) {
   try {
     const res = await fetch(`${API_BASE}/api/signup`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),
     });
 
     const data = await res.json().catch(() => ({}));
-
-    console.log("Signup response:", res.status, data);
 
     if (!res.ok) {
       throw new Error(data.message || "Unable to create account");
@@ -46,10 +41,7 @@ export async function apiSignin({ email, password }) {
 }
 
 export function saveSession(user) {
-  sessionStorage.setItem(
-    "auth_token",
-    user.token || user.uid || "session"
-  );
+  sessionStorage.setItem("auth_token", user.token || user.uid || "session");
 
   localStorage.setItem("userName", user.name || "User");
   localStorage.setItem("userEmail", user.email || "");
@@ -65,4 +57,23 @@ export function clearSession() {
 
 export function isLoggedIn() {
   return Boolean(sessionStorage.getItem("auth_token"));
+}
+
+export async function apiAiWrite({ tool, input, tone }) {
+  const res = await fetch(`${API_BASE}/api/ai/write`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${sessionStorage.getItem("auth_token") || ""}`,
+    },
+    body: JSON.stringify({ tool, input, tone }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(data.message || "The AI tool is unavailable right now.");
+  }
+
+  return data.text;
 }
