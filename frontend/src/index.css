@@ -1,17 +1,45 @@
 @import "tailwindcss";
 
-:root {
-  font-family: "DM Sans", system-ui, sans-serif;
-  color: #20211f;
-  background: #f6f4ef;
+@theme {
+  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-sans: "Figtree", system-ui, sans-serif;
+  --color-ink: #0b1220;
+  --color-cobalt: #2f54eb;
+  --color-cobalt-dark: #2443c4;
+  --color-mist: #f4f6fa;
+  --color-line: #e2e8f0;
+  --color-body: #475569;
+  --color-muted: #64748b;
 }
 
-.font-serif {
-  font-family: "Instrument Serif", Georgia, serif;
+html {
+  scroll-padding-top: 5rem;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: #f6f4ef;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-cobalt);
+  outline-offset: 2px;
+}
+
+/* Hero preview builds itself once on load */
+.build-in {
+  opacity: 0;
+  animation: build-in 0.55s ease-out forwards;
+  animation-delay: var(--d, 0s);
+}
+@keyframes build-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .build-in { animation: none; opacity: 1; }
 }
