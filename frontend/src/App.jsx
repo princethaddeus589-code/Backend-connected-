@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { buildHtml, clearSession, fromShare, getUser, isAdmin } from "./lib";
-import { Icon, Logo } from "./ui";
+import { clearSession, fromShare, getUser, isAdmin } from "./lib";
+import { Icon } from "./ui";
 import Landing from "./Landing";
 import Auth from "./Auth";
 import Builder from "./Builder";
 import Admin from "./Admin";
 import { Dashboard, Portfolios, AiTools, Settings } from "./Pages";
+import { buildHtml } from "./lib";
 
 const NAV = [
   { to: "/app", end: true, label: "Home", icon: "home" },
@@ -44,12 +45,20 @@ function Shell() {
     clearSession();
     nav("/", { replace: true });
   };
+  const TITLES = { "/app": "Home", "/app/portfolios": "Portfolios", "/app/create": "Create", "/app/ai": "AI writer", "/app/settings": "Settings", "/app/admin": "Admin" };
+  const title = TITLES[loc.pathname] || (loc.pathname.startsWith("/app/edit") ? "Edit" : "");
   const initial = (user.name || user.email || "U").trim().charAt(0).toUpperCase();
 
   return (
     <div className="shell">
       <aside className="side">
-        <Logo to="/app" />
+        <div className="who">
+          <span className="avatar">{initial}</span>
+          <div>
+            <b>{user.name || "Your account"}</b>
+            <small>{user.email}</small>
+          </div>
+        </div>
         <nav className="nav">
           {NAV.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.end}>
@@ -61,20 +70,13 @@ function Shell() {
           )}
         </nav>
         <div className="side-foot">
-          <div className="who">
-            <span className="avatar">{initial}</span>
-            <div>
-              <b>{user.name || "Your account"}</b>
-              <small>{user.email}</small>
-            </div>
-          </div>
           <button className="btn ghost full" onClick={signOut}><Icon n="out" s={18} /> Sign out</button>
         </div>
       </aside>
 
       <div className="main">
         <header className="top">
-          <div className="top-logo"><Logo to="/app" /></div>
+          <div className="top-title">{title}</div>
           <div className="top-right" ref={menu}>
             <button className="avatar btn-av" onClick={() => setOpen(!open)} aria-label="Account menu">{initial}</button>
             {open && (
