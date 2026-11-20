@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { KINDS, SAMPLES, TEMPLATES, aiWrite, applyTheme, buildHtml, clearSession, getUser, loadAll, saveAll, shareUrl, updateName } from "./lib";
+import { KINDS, SAMPLES, TEMPLATES, aiWrite, applyTheme, buildHtml, clearSession, getUser, loadAll, saveAll, shareUrl, track, updateName } from "./lib";
 import { Icon, Thumb } from "./ui";
 
 const ago = (t) => {
