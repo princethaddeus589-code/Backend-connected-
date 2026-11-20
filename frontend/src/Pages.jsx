@@ -103,7 +103,7 @@ export function Portfolios() {
   }
   async function copy(p) {
     try {
-      await navigator.clipboard.writeText(shareUrl(p));
+      await navigator.clipboard.writeText(shareUrl(p)); track("portfolio_shared", { template: p.template, kind: p.kind });
       setCopied(p.id);
       setTimeout(() => setCopied(""), 1800);
     } catch {
