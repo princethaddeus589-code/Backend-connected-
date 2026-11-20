@@ -34,7 +34,7 @@ export default function Builder() {
     const item = { ...d, updatedAt: Date.now() };
     const i = all.findIndex((p) => p.id === d.id);
     if (i >= 0) all[i] = item; else all.unshift(item);
-    saveAll(all);
+    saveAll(all); track("portfolio_saved", { template: d.template, kind: d.kind, isNew: i < 0 });
   }
 
   async function ai(key, tool, input, done) {
