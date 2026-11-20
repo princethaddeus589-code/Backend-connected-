@@ -19,7 +19,7 @@ function download(p) {
   a.href = URL.createObjectURL(b);
   a.download = (p.name || "portfolio").toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".html";
   a.click();
-  URL.revokeObjectURL(a.href);
+  URL.revokeObjectURL(a.href);   track("portfolio_downloaded", { template: p.template, kind: p.kind });
 }
 
 function Empty() {
