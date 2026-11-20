@@ -36,9 +36,8 @@ export function Icon({ n, s = 20 }) {
 
 export function Logo({ to = "/" }) {
   return (
-    <Link to={to} className="logo">
-      <span className="mark">P</span>
-      <span>Portfolia</span>
+        <Link to={to} className="logo wm">
+      PORTFOLIA<i />
     </Link>
   );
 }
