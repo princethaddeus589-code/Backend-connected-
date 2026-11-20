@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { clearSession, fromShare, getUser } from "./lib";
+import { buildHtml, clearSession, fromShare, getUser, isAdmin } from "./lib";
 import { Icon, Logo } from "./ui";
 import Landing from "./Landing";
 import Auth from "./Auth";
 import Builder from "./Builder";
+import Admin from "./Admin";
 import { Dashboard, Portfolios, AiTools, Settings } from "./Pages";
-import { buildHtml } from "./lib";
 
 const NAV = [
   { to: "/app", end: true, label: "Home", icon: "home" },
@@ -18,6 +18,9 @@ const NAV = [
 
 function Guard({ children }) {
   return getUser() ? children : <Navigate to="/login" replace />;
+}
+function AdminOnly({ children }) {
+  return isAdmin() ? children : <Navigate to="/app" replace />;
 }
 function Guest({ children }) {
   return getUser() ? <Navigate to="/app" replace /> : children;
@@ -53,6 +56,9 @@ function Shell() {
               <Icon n={n.icon} /> {n.label}
             </NavLink>
           ))}
+          {isAdmin() && (
+            <NavLink to="/app/admin"><Icon n="shield" /> Admin</NavLink>
+          )}
         </nav>
         <div className="side-foot">
           <div className="who">
@@ -74,6 +80,7 @@ function Shell() {
             {open && (
               <div className="pop">
                 <div className="pop-head"><b>{user.name || "Your account"}</b><small>{user.email}</small></div>
+                {isAdmin() && <button onClick={() => nav("/app/admin")}><Icon n="shield" s={18} /> Admin dashboard</button>}
                 <button onClick={() => nav("/app/settings")}><Icon n="sliders" s={18} /> Settings</button>
                 <button className="danger" onClick={signOut}><Icon n="out" s={18} /> Sign out</button>
               </div>
@@ -123,6 +130,7 @@ export default function App() {
           <Route path="edit/:id" element={<Builder />} />
           <Route path="ai" element={<AiTools />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="admin" element={<AdminOnly><Admin /></AdminOnly>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
