@@ -1,6 +1,6 @@
 import { useDeferredValue, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { KINDS, TEMPLATES, SAMPLES, aiWrite, blank, clearSession, loadAll, saveAll } from "./lib";
+import { KINDS, TEMPLATES, SAMPLES, aiWrite, blank, clearSession, loadAll, saveAll, track } from "./lib";
 import { Icon, Thumb } from "./ui";
 
 const STEPS = ["Style", "About", "Work", "Contact"];
