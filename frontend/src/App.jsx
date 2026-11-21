@@ -124,6 +124,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Guest><Auth mode="login" /></Guest>} />
         <Route path="/signup" element={<Guest><Auth mode="signup" /></Guest>} />
+        <Route path="/forgot" element={<Guest><Auth mode="forgot" /></Guest>} />
         <Route path="/view" element={<View />} />
         <Route path="/app" element={<Guard><Shell /></Guard>}>
           <Route index element={<Dashboard />} />
