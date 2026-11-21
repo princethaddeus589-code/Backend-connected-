@@ -86,6 +86,7 @@ async function requireAdmin(req, res, next) {
 }
 
 // SIGN UP
+registerAuthRoutes(app, { auth, db, logEvent, isAdmin });
 app.post("/api/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
