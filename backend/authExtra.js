@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import nodemailer from "nodemailer";
 
 const OTP_TTL = 10 * 60 * 1000; // code valid for 10 minutes
 const COOLDOWN = 60 * 1000; // one new code per minute
@@ -12,26 +13,39 @@ export function registerAuthRoutes(app, { auth, db, logEvent, isAdmin }) {
   const hashCode = (email, purpose, code) =>
     crypto.createHash("sha256").update(`${email}|${purpose}|${code}|${process.env.OTP_SECRET || webKey()}`).digest("hex");
 
-  // ---------- sending email (Brevo, free plan: 300 emails/day) ----------
+    // ---------- sending email (Gmail first, Brevo as a backup) ----------
+  let transporter;
   async function sendMail(to, subject, html) {
+    const gUser = process.env.GMAIL_USER;
+    const gPass = process.env.GMAIL_APP_PASSWORD;
+    const fromName = process.env.MAIL_FROM_NAME || "Portfolia";
+
+    if (gUser && gPass) {
+      try {
+        transporter ||= nodemailer.createTransport({ service: "gmail", auth: { user: gUser, pass: gPass.replace(/\s+/g, "") } });
+        await transporter.sendMail({ from: `"${fromName}" <${gUser}>`, to, subject, html });
+        return;
+      } catch (err) {
+        console.error("MAIL ERROR (gmail):", err.message);
+        throw new Error("MAIL_FAILED");
+      }
+    }
+
     const key = process.env.BREVO_API_KEY;
     const from = process.env.MAIL_FROM;
     if (!key || !from) throw new Error("MAIL_NOT_CONFIGURED");
     const r = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: { "api-key": key, "content-type": "application/json", accept: "application/json" },
-      body: JSON.stringify({
-        sender: { name: process.env.MAIL_FROM_NAME || "Portfolia", email: from },
-        to: [{ email: to }],
-        subject,
-        htmlContent: html,
-      }),
+      body: JSON.stringify({ sender: { name: fromName, email: from }, to: [{ email: to }], subject, htmlContent: html }),
     });
     if (!r.ok) {
       console.error("MAIL ERROR:", r.status, await r.text().catch(() => ""));
       throw new Error("MAIL_FAILED");
     }
   }
+
+
 
   const mailHtml = (title, code) =>
     `<div style="font-family:Arial,sans-serif;max-width:420px;margin:auto;padding:24px;color:#111">
