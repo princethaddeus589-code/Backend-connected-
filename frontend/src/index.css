@@ -196,3 +196,14 @@ label{display:grid;gap:7px;font-size:14px;font-weight:600}
 .dot{width:10px;height:10px;border-radius:50%;background:#6366f1;flex:none}.dot.ok{background:#10b981}.dot.bad{background:var(--bad)}.dot.ai{background:#d946ef}
 .tag{font-style:normal;font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--lime);color:#111;margin-left:6px}.tag.bad{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
 .filters{display:flex;gap:8px;flex-wrap:wrap}.filters button{border:1px solid var(--line);background:transparent;border-radius:99px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--mut)}.filters button.on{background:var(--brand);border-color:var(--brand);color:var(--on)}
+
+/* sign-in extras */
+.forgot{justify-self:end;font-size:13.5px;margin-top:-6px}
+.code{font-family:var(--serif);font-size:34px;letter-spacing:.5em;text-align:center;padding-left:.5em}
+.row2{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:14px}
+.linkbtn{background:none;border:0;padding:0;color:var(--ink)}.linkbtn:disabled{opacity:.5;cursor:default;text-decoration:none}
+.social{display:grid;gap:12px}
+.gbtn{display:flex;justify-content:center;min-height:44px}
+.abtn{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:44px;border-radius:999px;border:1px solid #000;background:#000;color:#fff;font-weight:600;font-size:15px}
+:root[data-theme=dark] .abtn{background:#fff;color:#000;border-color:#fff}
+.divider{display:flex;align-items:center;gap:12px;color:var(--mut);font-size:13px}.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
