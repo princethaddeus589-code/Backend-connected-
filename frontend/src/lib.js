@@ -33,7 +33,12 @@ export const updateName = (name) => {
   const u = getUser();
   if (u) localStorage.setItem("pf_user", JSON.stringify({ ...u, name }));
 };
-export const apiSignup = (b) => post("/api/signup", b);
+export const apiSignupStart = (b) => post("/api/signup/start", b);
+export const apiSignupVerify = (b) => post("/api/signup/verify", b);
+export const apiForgotStart = (b) => post("/api/forgot/start", b);
+export const apiForgotReset = (b) => post("/api/forgot/reset", b);
+export const apiGoogle = (b) => post("/api/auth/google", b);
+export const apiApple = (b) => post("/api/auth/apple", b);
 export const apiSignin = (b) => post("/api/signin", b);
 export const isAdmin = () => !!getUser()?.admin;
 const tok = () => getUser()?.token || "";
@@ -75,6 +80,10 @@ export const TEMPLATES = [
   { id: "midnight", name: "Midnight", note: "Dark and sharp", accent: "#22d3ee" },
   { id: "scholar", name: "Scholar", note: "Warm and academic", accent: "#b45309" },
   { id: "executive", name: "Executive", note: "Navy and gold", accent: "#c9a227" },
+  { id: "noir", name: "Noir", note: "Dark editorial serif", accent: "#e8c872" },
+  { id: "bloom", name: "Bloom", note: "Soft, warm and friendly", accent: "#db2777" },
+  { id: "terminal", name: "Terminal", note: "Monospace for developers", accent: "#39ff88" },
+  { id: "studio", name: "Studio", note: "Bold and playful", accent: "#ff5a36" },
 ];
 
 export const blank = (t) => {
@@ -118,6 +127,30 @@ export const SAMPLES = [
     [{ title: "Swift Logistics", text: "Scaled from 3 to 120 staff and 9 cities.", link: "" },
      { title: "Bello Retail", text: "Opened 5 stores with 30% yearly growth.", link: "" }],
     [{ role: "Founder & CEO", org: "Swift Logistics", period: "2017 - Now", text: "Raised $2M seed funding." }]),
+  sample(4, "business", "Fatima Bello", "Corporate Lawyer",
+    "I advise founders and growing companies on contracts, compliance and disputes, with clear and practical legal guidance.",
+    ["Contracts", "Compliance", "Negotiation", "Arbitration"],
+    [{ title: "Series A Counsel", text: "Led legal work for a $5M fundraising round.", link: "" },
+     { title: "IP Portfolio Review", text: "Protected 40+ trademarks across 6 markets.", link: "" }],
+    [{ role: "Senior Associate", org: "Bello & Partners", period: "2018 - Now", text: "Manage a team of 4 associates." }]),
+  sample(5, "creative", "Zainab Musa", "Wellness Coach",
+    "I help busy people build calm routines, better sleep and sustainable habits, one small step at a time.",
+    ["Coaching", "Nutrition", "Mindfulness", "Workshops"],
+    [{ title: "30-Day Reset", text: "A guided programme completed by 600+ clients.", link: "" },
+     { title: "Corporate Wellness Talks", text: "Monthly sessions for 12 partner companies.", link: "" }],
+    [{ role: "Founder", org: "Calm Habits Studio", period: "2020 - Now", text: "Coached over 1,500 people." }]),
+  sample(6, "developer", "Samuel Obi", "Backend Engineer",
+    "I build reliable APIs and data pipelines. I like clear logs, fast queries and systems that fail gracefully.",
+    ["Go", "PostgreSQL", "Docker", "Kafka", "Linux"],
+    [{ title: "Event Pipeline", text: "Streams 3M events a day with sub-second latency.", link: "" },
+     { title: "Auth Service", text: "Single sign-on used by 8 internal products.", link: "" }],
+    [{ role: "Backend Engineer", org: "Streamline", period: "2022 - Now", text: "Cut infrastructure costs by 35%." }]),
+  sample(7, "creative", "Kemi Ojo", "Illustrator & Designer",
+    "I create bold, joyful illustrations and brand identities for small businesses and publishers.",
+    ["Illustration", "Branding", "Procreate", "Figma"],
+    [{ title: "Children's Book", text: "Illustrated a 32-page picture book for a local publisher.", link: "" },
+     { title: "Cafe Rebrand", text: "New identity, packaging and signage for a growing cafe.", link: "" }],
+    [{ role: "Freelance Designer", org: "Self-employed", period: "2019 - Now", text: "40+ happy clients." }]),
 ];
 
 // ---------- share links (no server needed) ----------
@@ -154,6 +187,10 @@ body.aurora{--bg:linear-gradient(180deg,#f3f4ff,#fff 45%);--fg:#1e1b4b;--mu:#647
 body.midnight{--bg:#080c18;--fg:#e6eaf5;--mu:#8b95b0;--cd:#101728;--ln:#1e2740;--f:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--ha:left;--hj:flex-start;--am:0;--hb:transparent;--hf:inherit}
 body.scholar{--bg:#fbf6ee;--fg:#2b2118;--mu:#7a6a58;--cd:#fffdf8;--ln:#eadfce;--f:Georgia,"Times New Roman",serif;--ha:left;--hj:flex-start;--am:0;--hb:transparent;--hf:inherit}
 body.executive{--bg:#f4f6fa;--fg:#0f172a;--mu:#5b6b82;--cd:#fff;--ln:#dfe5ee;--f:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--ha:left;--hj:flex-start;--am:0;--hb:#0b2545;--hf:#fff}
+body.noir{--bg:#0e0e0f;--fg:#f4efe6;--mu:#a39e92;--cd:#18181a;--ln:#2a2a2d;--f:Georgia,"Times New Roman",serif;--ha:center;--hj:center;--am:auto;--hb:transparent;--hf:inherit}
+body.bloom{--bg:linear-gradient(180deg,#fff1f4,#fffaf5 50%);--fg:#3b0a2a;--mu:#8a5a77;--cd:#fff;--ln:#f5d9e3;--f:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--ha:center;--hj:center;--am:auto;--hb:transparent;--hf:inherit}
+body.terminal{--bg:#06110a;--fg:#c8f7d6;--mu:#7fae8f;--cd:#0b1c11;--ln:#17402a;--f:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--ha:left;--hj:flex-start;--am:0;--hb:transparent;--hf:inherit}
+body.studio{--bg:#fff8dc;--fg:#111;--mu:#4b4b4b;--cd:#fff;--ln:#111;--f:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--ha:left;--hj:flex-start;--am:0;--hb:transparent;--hf:inherit}
 .nav{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 5vw;backdrop-filter:blur(10px);background:color-mix(in srgb,var(--cd) 72%,transparent);border-bottom:1px solid var(--ln)}
 .nav b{font-weight:800;letter-spacing:-.01em}.nav div{display:flex;gap:20px}.nav a{font-size:14px;color:var(--mu);text-decoration:none;transition:.2s}.nav a:hover{color:var(--a)}
 .hero{background:var(--hb);color:var(--hf);text-align:var(--ha);padding:92px 5vw 78px;position:relative;overflow:hidden}
@@ -184,6 +221,10 @@ small{display:block;margin-top:36px;color:var(--mu);font-size:13px}
 .rv{animation:up .85s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*90ms)}
 @keyframes up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @keyframes fl{50%{transform:translate(-30px,30px) scale(1.12)}}
+body.noir h1,body.noir h2{font-weight:400;letter-spacing:-.01em}body.noir .hero h1{font-style:italic}body.noir .b{color:#111}body.noir .b.o{color:var(--fg)}
+body.bloom .c{border-radius:28px}body.bloom .av{border:4px solid #fff}
+body.terminal h2::before{content:"// ";color:var(--a);font-weight:400}body.terminal h2::after{display:none}body.terminal .c{border-style:dashed;border-radius:6px}body.terminal .chip{border-radius:6px}body.terminal .b,body.terminal .av{color:#04130a}body.terminal .b.o{color:var(--fg)}
+body.studio h1,body.studio h2{font-weight:900;letter-spacing:-.04em}body.studio .c{border:2px solid #111;border-radius:10px;box-shadow:6px 6px 0 #111;background:#fff}body.studio .c:hover{transform:translate(-3px,-3px);box-shadow:9px 9px 0 #111}body.studio .b{color:#111;border:2px solid #111;box-shadow:4px 4px 0 #111;border-radius:10px}body.studio .b.o{background:#fff}body.studio .chip{border:2px solid #111;border-radius:8px}body.studio .nav{background:#fff8dc;border-bottom:2px solid #111}body.studio .av{border:3px solid #111;color:#111;background:var(--a);box-shadow:5px 5px 0 #111}body.studio h2::after{height:6px;background:#111}
 @supports (animation-timeline:view()){.sc{animation:up both linear;animation-timeline:view();animation-range:entry 0% cover 28%}}
 @media(max-width:640px){.nav div{display:none}.hero{padding:64px 6vw 56px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
