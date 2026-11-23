@@ -37,7 +37,7 @@ export function Icon({ n, s = 20 }) {
 export function Logo({ to = "/" }) {
   return (
     <Link to={to} className="logo wm">
-      <img src="/favicon.svg" alt="" width="26" height="26" style={{ marginRight: 10, borderRadius: 7 }} />
+      <img src="/favicon.svg" alt="" />
       PORTFOLIA<i />
     </Link>
   );
