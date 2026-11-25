@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { clearSession, fromShare, getUser, isAdmin } from "./lib";
 import { Icon } from "./ui";
+import Bell from "./Notifications";
+import Upgrade from "./Upgrade";
+import Public from "./Public";
+import { refreshMe, useMe } from "./plan";
 import Landing from "./Landing";
 import Auth from "./Auth";
 import Builder from "./Builder";
@@ -33,6 +37,8 @@ function Shell() {
   const user = getUser() || {};
   const [open, setOpen] = useState(false);
   const menu = useRef(null);
+  const me = useMe(true);
+  const premium = me?.plan === "premium";
 
   useEffect(() => setOpen(false), [loc.pathname]);
   useEffect(() => {
@@ -45,7 +51,7 @@ function Shell() {
     clearSession();
     nav("/", { replace: true });
   };
-  const TITLES = { "/app": "Home", "/app/portfolios": "Portfolios", "/app/create": "Create", "/app/ai": "AI writer", "/app/settings": "Settings", "/app/admin": "Admin" };
+  const TITLES = { "/app": "Home", "/app/portfolios": "Portfolios", "/app/create": "Create", "/app/ai": "AI writer", "/app/settings": "Settings", "/app/upgrade": "Premium", "/app/admin": "Admin" };
   const title = TITLES[loc.pathname] || (loc.pathname.startsWith("/app/edit") ? "Edit" : "");
   const initial = (user.name || user.email || "U").trim().charAt(0).toUpperCase();
 
@@ -65,6 +71,7 @@ function Shell() {
               <Icon n={n.icon} /> {n.label}
             </NavLink>
           ))}
+          <NavLink to="/app/upgrade"><Icon n="crown" /> {premium ? "Premium" : "Go Premium"}</NavLink>
           {isAdmin() && (
             <NavLink to="/app/admin"><Icon n="shield" /> Admin</NavLink>
           )}
@@ -77,16 +84,20 @@ function Shell() {
       <div className="main">
         <header className="top">
           <div className="top-title">{title}</div>
-          <div className="top-right" ref={menu}>
-            <button className="avatar btn-av" onClick={() => setOpen(!open)} aria-label="Account menu">{initial}</button>
-            {open && (
-              <div className="pop">
-                <div className="pop-head"><b>{user.name || "Your account"}</b><small>{user.email}</small></div>
-                {isAdmin() && <button onClick={() => nav("/app/admin")}><Icon n="shield" s={18} /> Admin dashboard</button>}
-                <button onClick={() => nav("/app/settings")}><Icon n="sliders" s={18} /> Settings</button>
-                <button className="danger" onClick={signOut}><Icon n="out" s={18} /> Sign out</button>
-              </div>
-            )}
+          <div className="top-right">
+            <Bell />
+            <div className="avwrap" ref={menu}>
+              <button className="avatar btn-av" onClick={() => setOpen(!open)} aria-label="Account menu">{initial}</button>
+              {open && (
+                <div className="pop">
+                  <div className="pop-head"><b>{user.name || "Your account"}</b><small>{user.email}{premium ? " · Premium" : ""}</small></div>
+                  <button onClick={() => nav("/app/upgrade")}><Icon n="crown" s={18} /> {premium ? "Your Premium plan" : "Go Premium"}</button>
+                  {isAdmin() && <button onClick={() => nav("/app/admin")}><Icon n="shield" s={18} /> Admin dashboard</button>}
+                  <button onClick={() => nav("/app/settings")}><Icon n="sliders" s={18} /> Settings</button>
+                  <button className="danger" onClick={signOut}><Icon n="out" s={18} /> Sign out</button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
         <main className="page" key={loc.pathname}>
@@ -126,6 +137,7 @@ export default function App() {
         <Route path="/signup" element={<Guest><Auth mode="signup" /></Guest>} />
         <Route path="/forgot" element={<Guest><Auth mode="forgot" /></Guest>} />
         <Route path="/view" element={<View />} />
+        <Route path="/p/:slug" element={<Public />} />
         <Route path="/app" element={<Guard><Shell /></Guard>}>
           <Route index element={<Dashboard />} />
           <Route path="portfolios" element={<Portfolios />} />
@@ -133,6 +145,7 @@ export default function App() {
           <Route path="edit/:id" element={<Builder />} />
           <Route path="ai" element={<AiTools />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="upgrade" element={<Upgrade />} />
           <Route path="admin" element={<AdminOnly><Admin /></AdminOnly>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
