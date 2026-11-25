@@ -5,6 +5,7 @@ import { initializeApp, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { registerAuthRoutes } from "./authExtra.js";
+import { registerFeatureRoutes } from "./features.js";
 
 dotenv.config();
 
@@ -87,6 +88,7 @@ async function requireAdmin(req, res, next) {
 
 // SIGN UP
 registerAuthRoutes(app, { auth, db, logEvent, isAdmin });
+registerFeatureRoutes(app, { auth, db, authUser, requireAdmin, logEvent, isAdmin });
 app.post("/api/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -237,7 +239,8 @@ app.post("/api/ai/write", async (req, res) => {
 
     const now = Date.now();
     const hits = (AI_HITS.get(user.uid) || []).filter((t) => now - t < 3600000);
-    if (hits.length >= 20) return fail(429, "You reached the hourly AI limit. Try again later.", { limit: true });
+    const aiMax = app.locals.aiLimit ? await app.locals.aiLimit(user.uid) : 20;
+    if (hits.length >= aiMax) return fail(429, "You reached the hourly AI limit. Try again later or ask about Premium.", { limit: true });
     hits.push(now);
     AI_HITS.set(user.uid, hits);
 
