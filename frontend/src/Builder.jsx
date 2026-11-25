@@ -1,7 +1,9 @@
 import { useDeferredValue, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { KINDS, TEMPLATES, SAMPLES, aiWrite, blank, clearSession, loadAll, saveAll, track } from "./lib";
 import { Icon, Thumb } from "./ui";
+import { FREE_TEMPLATES, apiPublish, siteLink, useMe } from "./plan";
+import ShareModal from "./Share";
 
 const STEPS = ["Style", "About", "Work", "Contact"];
 const SWATCH = ["#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#0f3d6e", "#22d3ee"];
@@ -20,6 +22,9 @@ export default function Builder() {
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [sk, setSk] = useState("");
+  const me = useMe();
+  const [share, setShare] = useState("");
+  const [custom, setCustom] = useState(d.customSlug || "");
   const pv = useDeferredValue(d);
   const mobile = typeof window !== "undefined" && window.innerWidth < 900;
 
@@ -29,12 +34,13 @@ export default function Builder() {
   const addItem = (list, item) => setD((p) => ({ ...p, [list]: [...p[list], item] }));
   const delItem = (list, i) => setD((p) => ({ ...p, [list]: p[list].filter((_, j) => j !== i) }));
 
-  function persist() {
+  function persist(extra = {}) {
     const all = loadAll();
-    const item = { ...d, updatedAt: Date.now() };
+    const item = { ...d, ...extra, updatedAt: Date.now() };
     const i = all.findIndex((p) => p.id === d.id);
     if (i >= 0) all[i] = item; else all.unshift(item);
-    saveAll(all); track("portfolio_saved", { template: d.template, kind: d.kind, isNew: i < 0 });
+    saveAll(all);
+    track("portfolio_saved", { template: d.template, kind: d.kind, isNew: i < 0 });
   }
 
   async function ai(key, tool, input, done) {
@@ -76,10 +82,22 @@ export default function Builder() {
     setSk("");
   };
 
-  function save() {
+  async function save() {
+    if (busy === "save") return;
     if (!d.name.trim()) { setStep(1); setErr("Please add your name before saving."); return; }
-    persist();
-    nav("/app/portfolios");
+    setErr(""); setBusy("save");
+    try {
+      const r = await apiPublish(d, d.slug || "", custom.trim());
+      persist({ slug: r.slug, customSlug: custom.trim() });
+      setD((p) => ({ ...p, slug: r.slug }));
+      setShare(siteLink(r.slug));
+    } catch (e) {
+      persist();
+      if (e.status === 401) { clearSession(); nav("/login"); return; }
+      setErr(`${e.message} Your portfolio is saved on this device.`);
+    } finally {
+      setBusy("");
+    }
   }
 
   const AiBtn = ({ k, onClick, children }) => (
@@ -88,6 +106,7 @@ export default function Builder() {
 
   return (
     <div className="builder">
+      {share && <ShareModal url={share} name={d.name} title="Your portfolio is live" onClose={() => nav("/app/portfolios")} />}
       <div className="page-head">
         <div><h1>{id ? "Edit portfolio" : "Create portfolio"}</h1><p className="muted">Fill in your details. Your website updates live.</p></div>
         <button className="btn" onClick={save}><Icon n="check" s={18} /> Save</button>
@@ -105,7 +124,7 @@ export default function Builder() {
               <button key={s} className={`${step === i ? "on" : ""} ${i < step ? "done" : ""}`} onClick={() => setStep(i)}><span>{i < step ? "✓" : i + 1}</span>{s}</button>
             ))}
           </div>
-          {err && <p className="alert" role="alert">{err}</p>}
+          {err && <p className="alert" role="alert">{err} {err.includes("Premium") && <Link to="/app/upgrade" className="lnk">See Premium</Link>}</p>}
 
           {step === 0 && (
             <div className="card pad stackf">
@@ -120,7 +139,7 @@ export default function Builder() {
                 {TEMPLATES.map((t, i) => (
                   <button key={t.id} className={`tplpick ${d.template === t.id ? "on" : ""}`} onClick={() => setD((p) => ({ ...p, template: t.id, accent: t.accent }))}>
                     <Thumb data={SAMPLES[i]} h={110} />
-                    <b>{t.name}</b>
+                    <b>{t.name}{!FREE_TEMPLATES.includes(t.id) && <i className="pro"><Icon n="crown" s={11} /> Pro</i>}</b>
                   </button>
                 ))}
               </div>
@@ -205,7 +224,12 @@ export default function Builder() {
               {[["email", "Email", "you@example.com"], ["website", "Website", "yoursite.com"], ["linkedin", "LinkedIn", "linkedin.com/in/you"], ["github", "GitHub", "github.com/you"], ["twitter", "X / Twitter", "x.com/you"]].map(([k, l, ph]) => (
                 <label key={k}>{l}<input className="in" value={d.contact[k] || ""} onChange={(e) => setC(k, e.target.value)} placeholder={ph} /></label>
               ))}
-              <button className="btn lg full" onClick={save}><Icon n="check" s={18} /> Save portfolio</button>
+              <label>
+                Custom link {me?.plan !== "premium" && <i className="pro"><Icon n="crown" s={11} /> Premium</i>}
+                <input className="in" value={custom} disabled={me?.plan !== "premium"} onChange={(e) => setCustom(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} placeholder="yourname" />
+                <small>{location.host}/p/{custom || "your-link"}</small>
+              </label>
+              <button className="btn lg full" onClick={save} disabled={busy === "save"}><Icon n="check" s={18} /> {busy === "save" ? "Publishing..." : "Save and get my link"}</button>
             </div>
           )}
 
