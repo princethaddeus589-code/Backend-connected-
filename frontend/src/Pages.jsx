@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { KINDS, SAMPLES, TEMPLATES, aiWrite, applyTheme, buildHtml, clearSession, getUser, loadAll, saveAll, shareUrl, track, updateName } from "./lib";
 import { Icon, Thumb } from "./ui";
+import { apiUnpublish, brand, siteLink, useMe } from "./plan";
+import ShareModal from "./Share";
 
 const ago = (t) => {
   if (!t) return "";
@@ -14,12 +16,13 @@ const ago = (t) => {
 const tplName = (id) => TEMPLATES.find((t) => t.id === id)?.name || "Aurora";
 
 function download(p) {
-  const b = new Blob([buildHtml(p)], { type: "text/html" });
+  const b = new Blob([brand(buildHtml(p))], { type: "text/html" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(b);
   a.download = (p.name || "portfolio").toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".html";
   a.click();
-  URL.revokeObjectURL(a.href);   track("portfolio_downloaded", { template: p.template, kind: p.kind });
+  URL.revokeObjectURL(a.href);
+  track("portfolio_downloaded", { template: p.template, kind: p.kind });
 }
 
 function Empty() {
@@ -39,6 +42,7 @@ export function Dashboard() {
   const [list] = useState(loadAll);
   const h = new Date().getHours();
   const hi = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  const me = useMe();
   const last = list.reduce((m, p) => Math.max(m, p.updatedAt || 0), 0);
   return (
     <div className="stack">
@@ -55,6 +59,14 @@ export function Dashboard() {
         <div className="card stat"><span>Last edited</span><b className="sm">{last ? ago(last) : "-"}</b></div>
         <div className="card stat"><span>AI writer</span><b className="sm ok">Ready</b></div>
       </div>
+
+      {me && me.plan !== "premium" && (
+        <Link to="/app/upgrade" className="card promo">
+          <span className="fic"><Icon n="crown" /></span>
+          <div><b>Go Premium</b><span className="muted">All 8 templates, your own link, no branding and more AI.</span></div>
+          <Icon n="arrow" s={18} />
+        </Link>
+      )}
 
       <div className="grid3">
         <Link to="/app/create" className="card action"><span className="fic"><Icon n="plus" /></span><b>Create portfolio</b><span className="muted">Start from a template</span></Link>
@@ -95,15 +107,19 @@ export function Dashboard() {
 export function Portfolios() {
   const [list, setList] = useState(loadAll);
   const [copied, setCopied] = useState("");
+  const [share, setShare] = useState(null);
   function remove(p) {
     if (!window.confirm(`Delete "${p.name || "Untitled"}"? This cannot be undone.`)) return;
     const next = list.filter((x) => x.id !== p.id);
     saveAll(next);
     setList(next);
+    if (p.slug) apiUnpublish(p.slug).catch(() => {});
+    track("portfolio_deleted", { template: p.template, kind: p.kind });
   }
   async function copy(p) {
     try {
-      await navigator.clipboard.writeText(shareUrl(p)); track("portfolio_shared", { template: p.template, kind: p.kind });
+      await navigator.clipboard.writeText(shareUrl(p));
+      track("portfolio_shared", { template: p.template, kind: p.kind });
       setCopied(p.id);
       setTimeout(() => setCopied(""), 1800);
     } catch {
@@ -121,11 +137,11 @@ export function Portfolios() {
           {list.map((p) => (
             <div key={p.id} className="card pcard">
               <Thumb data={p} h={200} />
-              <div className="pinfo"><b>{p.name || "Untitled"}</b><span className="muted">{p.title || KINDS[p.kind]?.label} · {tplName(p.template)} · {ago(p.updatedAt)}</span></div>
+              <div className="pinfo"><b>{p.name || "Untitled"} {p.slug && <i className="live">Live</i>}</b><span className="muted">{p.title || KINDS[p.kind]?.label} · {tplName(p.template)} · {ago(p.updatedAt)}</span></div>
               <div className="acts">
                 <Link to={`/app/edit/${p.id}`} className="btn ghost sm"><Icon n="edit" s={16} /> Edit</Link>
-                <a href={shareUrl(p)} target="_blank" rel="noopener" className="btn ghost sm"><Icon n="eye" s={16} /> View</a>
-                <button className="btn ghost sm" onClick={() => copy(p)}><Icon n={copied === p.id ? "check" : "link"} s={16} /> {copied === p.id ? "Copied" : "Link"}</button>
+                <a href={p.slug ? siteLink(p.slug) : shareUrl(p)} target="_blank" rel="noopener" className="btn ghost sm"><Icon n="eye" s={16} /> View</a>
+                <button className="btn ghost sm" onClick={() => setShare(p)}><Icon n="share" s={16} /> Share</button>
                 <button className="btn ghost sm" onClick={() => download(p)}><Icon n="down" s={16} /> HTML</button>
                 <button className="btn ghost sm danger-t" onClick={() => remove(p)} aria-label="Delete"><Icon n="trash" s={16} /></button>
               </div>
@@ -133,7 +149,8 @@ export function Portfolios() {
           ))}
         </div>
       )}
-      <p className="muted note">Portfolios are saved on this device. Use <b>Link</b> to share a live copy, or <b>HTML</b> to download a website file you can host anywhere.</p>
+      <p className="muted note">Tap <b>Share</b> to copy or send your link. Portfolios without a <b>Live</b> tag need to be opened and saved once to get their link. Use <b>HTML</b> to download a website file you can host anywhere.</p>
+      {share && <ShareModal url={share.slug ? siteLink(share.slug) : shareUrl(share)} name={share.name} onClose={() => setShare(null)} />}
     </div>
   );
 }
@@ -209,6 +226,7 @@ export function Settings() {
   const [msg, setMsg] = useState("");
   const [theme, setThemeS] = useState(localStorage.getItem("pf_theme") || "system");
   const [motion, setMotionS] = useState(localStorage.getItem("pf_motion") !== "off");
+  const me = useMe();
 
   function save(e) {
     e.preventDefault();
@@ -236,6 +254,12 @@ export function Settings() {
         <label>Email<input className="in" value={user.email || ""} readOnly /></label>
         <button className="btn">Save changes</button>
       </form>
+
+      <div className="card pad">
+        <h3>Plan</h3>
+        <p>{me?.plan === "premium" ? `Premium${me.premiumUntil ? " until " + new Date(me.premiumUntil).toLocaleDateString() : ""}` : "Free"}</p>
+        {me?.plan !== "premium" && <Link to="/app/upgrade" className="btn"><Icon n="crown" s={18} /> See Premium</Link>}
+      </div>
 
       <div className="card pad">
         <h3>Appearance</h3>
